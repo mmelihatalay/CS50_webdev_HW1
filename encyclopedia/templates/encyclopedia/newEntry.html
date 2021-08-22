@@ -6,7 +6,9 @@ New Entry
 
 {% block body %}
 <h1>New Entry</h1>
-
+{% if dublicated %}
+<h2><b>{{error}}</b></h2>
+{% endif %}
 <form action="{% url 'add' %}" method="POST">
     {% csrf_token %}
     {{form}}

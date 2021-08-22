@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django import forms
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
+from django.forms import TextInput, Textarea
+import random
+
 from . import util
 
 
@@ -32,7 +35,6 @@ def show(request, name):
 
 
 def suggestion(request, name):
-    print(name)
     entries = util.list_entries()
     suggestions = []
     for entry in entries:
@@ -47,19 +49,34 @@ def suggestion(request, name):
 class EntryForm(forms.Form):
 
     title = forms.CharField(label="Title")
-    text = forms.CharField(label="Text")
+    text = forms.CharField(label="Text",
+                           widget=forms.Textarea(attrs={'rows': 3, "cols": 10}))
 
 
 def addnewentry(request):
     form = EntryForm()
+    dublicated = False
+    error = ""
     if request.method == "POST":
         form = EntryForm(request.POST)
         if form.is_valid():
             title = form.cleaned_data["title"]
-            text = form.cleaned_data["text"]
-            util.save_entry(title, text)
-            return HttpResponseRedirect(reverse("index"))
-
+            if title in util.list_entries():
+                dublicated = True
+                error = "Dublicated title, change the title."
+            else:
+                text = form.cleaned_data["text"]
+                util.save_entry(title, text)
+                return HttpResponseRedirect(reverse("index"))
     return render(request, "encyclopedia/newEntry.html", {
-        "form": EntryForm()
+        "form": EntryForm(),
+        "dublicated": dublicated,
+        "error": error
     })
+
+
+def randomEntry(request):
+
+    entries = util.list_entries()
+    randomIndex = random.randint(0, len(entries)-1)
+    return show(request, entries[randomIndex])
