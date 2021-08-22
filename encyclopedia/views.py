@@ -1,5 +1,7 @@
 from django.shortcuts import render
-
+from django import forms
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from . import util
 
 
@@ -39,4 +41,25 @@ def suggestion(request, name):
 
     return render(request, "encyclopedia/suggestions.html", {
         "suggestions": suggestions
+    })
+
+
+class EntryForm(forms.Form):
+
+    title = forms.CharField(label="Title")
+    text = forms.CharField(label="Text")
+
+
+def addnewentry(request):
+    form = EntryForm()
+    if request.method == "POST":
+        form = EntryForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            text = form.cleaned_data["text"]
+            util.save_entry(title, text)
+            return HttpResponseRedirect(reverse("index"))
+
+    return render(request, "encyclopedia/newEntry.html", {
+        "form": EntryForm()
     })
